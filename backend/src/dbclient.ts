@@ -6,21 +6,31 @@ interface SignUser{
     lastname : string,
     password : string
 }
-export const checkUser = async (username:string)=>{
+interface FindUser{
+    firstname : string;
+    lastname : string
+}
+export const checkUser = async (username: string) => {
     try {
         await prisma.$connect();
-        const isUser = await prisma.user.findUnique({
-            where:{
+        const isUser = await prisma.user.findFirst({
+            where: {
                 username
             }
-        })
-        return 'User is Not existed'
+        });
+
+        if (!isUser) {
+            return 'User does not exist';
+        }
+
+        return 'User exists';
     } catch (error) {
-        return null
-    }finally{
+        console.error('Error checking user:', error);
+        return null;
+    } finally {
         await prisma.$disconnect();
     }
-}
+};
 export const createUser = async ({username,firstname,lastname,password}:SignUser):Promise<SignUser|null>=>{
     try {
         await prisma.$connect();
@@ -32,8 +42,10 @@ export const createUser = async ({username,firstname,lastname,password}:SignUser
                 password
             }
         })
+        console.log(user);
         return user;
     } catch (error) {
+        console.log(error);
         return null
     }finally{
         await prisma.$disconnect();
@@ -51,6 +63,39 @@ export const findUser = async (username:string,password:string):Promise<SignUser
         return user
     } catch (error) {
         return null
+    }finally{
+        await prisma.$disconnect();
+    }
+}
+export const searchName = async (firstname:string,lastname:string):Promise<FindUser[]|null>=>{
+    try {
+        await prisma.$connect();
+        const res = await prisma.user.findMany({
+            where:{
+                OR:[
+                    {
+                        firstname:{
+                            startsWith:firstname,
+                            mode:'insensitive',
+                        }
+                    },
+                    {
+                        lastname:{
+                            startsWith:lastname,
+                            mode:'insensitive',
+                        }
+                    }
+                ]
+            },
+            select:{
+                firstname:true,
+                lastname:true
+            }
+        })
+        return res;
+    } catch (error) {
+        console.log(error);
+        return null;
     }finally{
         await prisma.$disconnect();
     }

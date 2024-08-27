@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 interface AuthenticatedRequest extends Request {
     user?: any;
 }
-const jwtMiddleware  = (req:AuthenticatedRequest,res:Response,next:NextFunction)=>{
+export const jwtMiddleware  = (req:AuthenticatedRequest,res:Response,next:NextFunction)=>{
     const authHeader = req.headers['authorization'];
     if(!authHeader || !authHeader.startsWith('Bearer')){
         return res.status(401).json({message: 'Access Denied. No token provided.'})
